@@ -23,6 +23,30 @@ class StokKeluarResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('barang_id') // ... kode sebelumnya
+                    ->reactive() // Tambahkan ini agar form bereaksi pada perubahan
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        // Ambil harga terakhir dari barang ini jika ada, untuk dijadikan saran
+                        $stokKeluarTerakhir = StokKeluar::where('barang_id', $state)->latest()->first();
+                        if ($stokKeluarTerakhir) {
+                            $set('harga_jual', $stokKeluarTerakhir->harga_jual);
+                        }
+                    }),
+                Forms\Components\TextInput::make('jumlah')
+                    ->required()
+                    ->numeric()
+                    ->reactive(), // Tambahkan ini
+                Forms\Components\TextInput::make('harga_jual')
+                    ->label('Harga Jual per Satuan')
+                    ->required()
+                    ->numeric()
+                    ->prefix('Rp'),
+                Forms\Components\TextInput::make('total_harga')
+                    ->label('Total Harga')
+                    ->numeric()
+                    ->prefix('Rp')
+                    ->disabled() // Field ini tidak bisa diisi manual
+                    ->dehydrated(false),
                 Forms\Components\Select::make('barang_id')
                     ->relationship('barang', 'nama')
                     ->required()
