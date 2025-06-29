@@ -7,13 +7,13 @@ use App\Models\Barang;
 use App\Models\User;
 use App\Models\StokMasuk; // Buat model StokMasuk
 use App\Models\StokKeluar; // Buat model StokKeluar
-use Faker\Factory as Faker;
+use Faker\Factory;
 
 class StokTransaksiSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = Faker::create('id_ID'); // Menggunakan data Faker Indonesia
+        $faker = Factory::create('id_ID'); // Menggunakan data Faker Indonesia
         $semuaBarang = Barang::all();
         $semuaUser = User::all();
 
