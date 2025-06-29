@@ -3,20 +3,17 @@ name: Deploy Laravel Application
 on:
   push:
     branches:
-      - main  # Ganti dengan nama branch utama Anda
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # Langkah 1: Checkout kode dari repositori
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Langkah 2: Sinkronisasi file aplikasi ke server menggunakan rsync
-    # Kita tidak menyertakan folder vendor/ karena akan diinstal di server
-    - name: Sync application files
+    - name: Sync application files (with protection for user uploads)
       uses: easingthemes/ssh-deploy@v5.0.0
       with:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -24,10 +21,10 @@ jobs:
         REMOTE_USER: ${{ secrets.REMOTE_USER }}
         REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
         SOURCE: "./"
-        TARGET: "public_html/niskala-stok.laratest.my.id" # Ganti dengan direktori proyek Anda
-        EXCLUDE: "/.git/, /node_modules/, /vendor/"
+        TARGET: "public_html/tuan-coffee"
+        # DITAMBAHKAN: Melindungi folder tempat file unggahan disimpan
+        EXCLUDE: "/.git/, /node_modules/, /vendor/, /storage/app/public/"
 
-    # Langkah 3: Menjalankan perintah setup di server (Composer, Artisan, dll)
     - name: Run setup commands on server
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -36,28 +33,27 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: ${{ secrets.REMOTE_PORT }}
         script: |
-          # Pindah ke direktori proyek di server
-          cd public_html/niskala-stok.laratest.my.id
+          cd public_html/tuan-coffee
           
-          # Membuat file .env dari secret yang kita simpan di GitHub
-          echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+          # 1. Setup .env file
+          cp .env.example .env
+          sed -i "s|APP_URL=http://localhost|APP_URL=${{ secrets.APP_URL }}|g" .env
+          sed -i "s|DB_DATABASE=laravel|DB_DATABASE=${{ secrets.DB_DATABASE }}|g" .env
+          sed -i "s|DB_USERNAME=root|DB_USERNAME=${{ secrets.DB_USERNAME }}|g" .env
+          sed -i "s|DB_PASSWORD=|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|g" .env
           
-          # Menjalankan composer install untuk produksi
-          # Pastikan composer sudah terinstal di server hosting Anda
+          # 2. Run Laravel installation and optimization
           composer install --no-interaction --no-dev --optimize-autoloader
-          
-          # Menjalankan perintah-perintah Artisan
           php artisan key:generate
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
-          # php artisan migrate --force
+          php artisan migrate:fresh --seed
           
-          # (Opsional) Jika Anda menggunakan storage link
-          # Cek dulu apakah symlink sudah ada, jika ada hapus
+          # 3. Create storage link manually
           if [ -L "public/storage" ]; then
               rm "public/storage"
           fi
-          php artisan storage:link
-
-          echo "✅ Deployment Laravel selesai!"
+          ln -s $PWD/storage/app/public $PWD/public/storage
+          
+          echo "🚀 Deployment Laravel selesai!"
