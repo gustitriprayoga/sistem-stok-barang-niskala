@@ -34,14 +34,14 @@ jobs:
         port: ${{ secrets.REMOTE_PORT }}
         script: |
           cd public_html/niskala-stok.laratest.my.id
-          
+
           # 1. Setup .env file
           cp .env.example .env
-          sed -i "s|APP_URL=http://localhost|APP_URL=${{ secrets.APP_URL }}|g" .env
-          sed -i "s|DB_DATABASE=laravel|DB_DATABASE=${{ secrets.DB_DATABASE }}|g" .env
-          sed -i "s|DB_USERNAME=root|DB_USERNAME=${{ secrets.DB_USERNAME }}|g" .env
-          sed -i "s|DB_PASSWORD=|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|g" .env
-          
+          sed -i "s|APP_URL=http://localhost|APP_URL=http://niskala-stok.laratest.my.id|g" .env
+          sed -i "s|DB_DATABASE=laravel|DB_DATABASE=koda1984_niskala-stok	|g" .env
+          sed -i "s|DB_USERNAME=root|DB_USERNAME=koda1984_10sarea-admin|g" .env
+          sed -i "s|DB_PASSWORD=|DB_PASSWORD=bangkinang123|g" .env
+
           # 2. Run Laravel installation and optimization
           composer install --no-interaction --no-dev --optimize-autoloader
           php artisan key:generate
@@ -49,11 +49,11 @@ jobs:
           php artisan route:cache
           php artisan view:cache
           php artisan migrate:fresh --seed
-          
+
           # 3. Create storage link manually
           if [ -L "public/storage" ]; then
               rm "public/storage"
           fi
           ln -s $PWD/storage/app/public $PWD/public/storage
-          
+
           echo "🚀 Deployment Laravel selesai!"
