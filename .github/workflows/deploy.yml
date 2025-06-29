@@ -37,8 +37,8 @@ jobs:
 
           # 1. Setup .env file
           cp .env.example .env
-          sed -i "s|APP_URL=http://localhost|APP_URL=http://niskala-stok.laratest.my.id|g" .env
-          sed -i "s|DB_DATABASE=laravel|DB_DATABASE=koda1984_niskala-stok	|g" .env
+          sed -i "s|APP_URL=http://127.0.0.1:8000|APP_URL=http://niskala-stok.laratest.my.id|g" .env
+          sed -i "s|DB_DATABASE=db_sistem_stok_niskala|DB_DATABASE=koda1984_niskala-stok	|g" .env
           sed -i "s|DB_USERNAME=root|DB_USERNAME=koda1984_10sarea-admin|g" .env
           sed -i "s|DB_PASSWORD=|DB_PASSWORD=bangkinang123|g" .env
 
