@@ -1,0 +1,63 @@
+name: Deploy Laravel Application
+
+on:
+  push:
+    branches:
+      - main  # Ganti dengan nama branch utama Anda
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Langkah 1: Checkout kode dari repositori
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Langkah 2: Sinkronisasi file aplikasi ke server menggunakan rsync
+    # Kita tidak menyertakan folder vendor/ karena akan diinstal di server
+    - name: Sync application files
+      uses: easingthemes/ssh-deploy@v5.0.0
+      with:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+        REMOTE_USER: ${{ secrets.REMOTE_USER }}
+        REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+        SOURCE: "./"
+        TARGET: "public_html/niskala-stok.laratest.my.id" # Ganti dengan direktori proyek Anda
+        EXCLUDE: "/.git/, /node_modules/, /vendor/"
+
+    # Langkah 3: Menjalankan perintah setup di server (Composer, Artisan, dll)
+    - name: Run setup commands on server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: ${{ secrets.REMOTE_PORT }}
+        script: |
+          # Pindah ke direktori proyek di server
+          cd public_html/niskala-stok.laratest.my.id
+          
+          # Membuat file .env dari secret yang kita simpan di GitHub
+          echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+          
+          # Menjalankan composer install untuk produksi
+          # Pastikan composer sudah terinstal di server hosting Anda
+          composer install --no-interaction --no-dev --optimize-autoloader
+          
+          # Menjalankan perintah-perintah Artisan
+          php artisan key:generate
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          # php artisan migrate --force
+          
+          # (Opsional) Jika Anda menggunakan storage link
+          # Cek dulu apakah symlink sudah ada, jika ada hapus
+          if [ -L "public/storage" ]; then
+              rm "public/storage"
+          fi
+          php artisan storage:link
+
+          echo "✅ Deployment Laravel selesai!"
