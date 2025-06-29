@@ -21,7 +21,7 @@ jobs:
         REMOTE_USER: ${{ secrets.REMOTE_USER }}
         REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
         SOURCE: "./"
-        TARGET: "public_html/tuan-coffee"
+        TARGET: "public_html/niskala-stok.laratest.my.id"
         # DITAMBAHKAN: Melindungi folder tempat file unggahan disimpan
         EXCLUDE: "/.git/, /node_modules/, /vendor/, /storage/app/public/"
 
@@ -33,7 +33,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: ${{ secrets.REMOTE_PORT }}
         script: |
-          cd public_html/tuan-coffee
+          cd public_html/niskala-stok.laratest.my.id
           
           # 1. Setup .env file
           cp .env.example .env
