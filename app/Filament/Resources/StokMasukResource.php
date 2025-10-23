@@ -18,6 +18,12 @@ class StokMasukResource extends Resource
     protected static ?string $navigationGroup = 'Manajemen Stok';
     protected static ?int $navigationSort = 2;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('karyawan');
+    }
+
+
     public static function form(Form $form): Form
     {
         return $form
@@ -39,6 +45,10 @@ class StokMasukResource extends Resource
                     ->relationship('user', 'name')
                     ->default(auth()->id())
                     ->disabled()
+                    // =========================================================
+                    // INILAH PERBAIKANNYA. TAMBAHKAN BARIS INI
+                    // =========================================================
+                    ->dehydrated()
                     ->required(),
             ]);
     }

@@ -9,15 +9,37 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use App\Traits\SendsWhatsAppNotifications;
+use Filament\Notifications\Notification;
 
 class BarangResource extends Resource
 {
+    use SendsWhatsAppNotifications;
+
     protected static ?string $model = Barang::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
     protected static ?string $navigationGroup = 'Manajemen Stok';
+    protected static ?string $navigationLabel = 'Data Barang';
     protected static ?int $navigationSort = 1;
 
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
 
     public static function form(Form $form): Form
     {
@@ -64,6 +86,25 @@ class BarangResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+
+                Tables\Actions\Action::make('send_notification')
+                    ->label('Kirim Notif WA')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Kirim Notifikasi Stok')
+                    ->modalDescription('Anda yakin ingin mengirim notifikasi stok menipis untuk barang ini ke WhatsApp?')
+                    ->action(function (Barang $record) {
+                        // This call will now work correctly
+                        (new static())->sendWhatsAppNotification($record);
+
+                        Notification::make()
+                            ->title('Notifikasi Terkirim')
+                            ->body('Pesan peringatan stok untuk ' . $record->nama . ' telah dikirim ke WhatsApp.')
+                            ->success()
+                            ->send();
+                    }),
+
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

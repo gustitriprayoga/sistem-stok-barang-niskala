@@ -10,4 +10,14 @@ class StokMasuk extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function barang()
+    {
+        return $this->belongsTo(Barang::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

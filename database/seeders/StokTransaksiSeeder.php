@@ -51,6 +51,6 @@ class StokTransaksiSeeder extends Seeder
         //     // Update stok_sekarang di tabel barangs
         //     $barang->stok_sekarang = $totalStokMasuk - $totalStokKeluar;
         //     $barang->save();
-        }
+        // }
     }
 }

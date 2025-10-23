@@ -13,12 +13,12 @@ class BarangSeeder extends Seeder
     public function run(): void
     {
         $dataBarang = [
-            ['nama' => 'Tepung Terigu Protein Tinggi', 'satuan' => 'kg', 'stok_maksimal' => 200],
-            ['nama' => 'Gula Pasir Kristal', 'satuan' => 'kg', 'stok_maksimal' => 150],
-            ['nama' => 'Telur Ayam Negeri', 'satuan' => 'butir', 'stok_maksimal' => 1000],
-            ['nama' => 'Minyak Goreng Sawit', 'satuan' => 'liter', 'stok_maksimal' => 100],
-            ['nama' => 'Garam Meja Beryodium', 'satuan' => 'gram', 'stok_maksimal' => 5000],
-            ['nama' => 'Ragi Instan', 'satuan' => 'gram', 'stok_maksimal' => 1000],
+            ['nama' => 'Tepung Terigu Protein Tinggi', 'satuan' => 'kg', 'stok_sekarang' => 20, 'stok_maksimal' => 200],
+            ['nama' => 'Gula Pasir Kristal', 'satuan' => 'kg', 'stok_sekarang' => 20, 'stok_maksimal' => 150],
+            ['nama' => 'Telur Ayam Negeri', 'satuan' => 'butir', 'stok_sekarang' => 20, 'stok_maksimal' => 1000],
+            ['nama' => 'Minyak Goreng Sawit', 'satuan' => 'liter', 'stok_sekarang' => 20, 'stok_maksimal' => 100],
+            ['nama' => 'Garam Meja Beryodium', 'satuan' => 'gram', 'stok_sekarang' => 20, 'stok_maksimal' => 5000],
+            ['nama' => 'Ragi Instan', 'satuan' => 'gram', 'stok_sekarang' => 20, 'stok_maksimal' => 1000],
         ];
 
         foreach ($dataBarang as $barang) {
@@ -27,7 +27,7 @@ class BarangSeeder extends Seeder
             Barang::create([
                 'nama' => $barang['nama'],
                 'satuan' => $barang['satuan'],
-                'stok_sekarang' => 0, // Stok awal selalu 0
+                'stok_sekarang' => 20, // Stok awal selalu 0
                 'stok_maksimal' => $barang['stok_maksimal'],
             ]);
         }

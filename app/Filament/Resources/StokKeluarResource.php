@@ -18,50 +18,71 @@ class StokKeluarResource extends Resource
     protected static ?string $navigationGroup = 'Manajemen Stok';
     protected static ?int $navigationSort = 3;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('karyawan');
+    }
+
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('barang_id') // ... kode sebelumnya
-                    ->reactive() // Tambahkan ini agar form bereaksi pada perubahan
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        // Ambil harga terakhir dari barang ini jika ada, untuk dijadikan saran
-                        $stokKeluarTerakhir = StokKeluar::where('barang_id', $state)->latest()->first();
-                        if ($stokKeluarTerakhir) {
-                            $set('harga_jual', $stokKeluarTerakhir->harga_jual);
-                        }
-                    }),
-                Forms\Components\TextInput::make('jumlah')
-                    ->required()
-                    ->numeric()
-                    ->reactive(), // Tambahkan ini
-                Forms\Components\TextInput::make('harga_jual')
-                    ->label('Harga Jual per Satuan')
-                    ->required()
-                    ->numeric()
-                    ->prefix('Rp'),
-                Forms\Components\TextInput::make('total_harga')
-                    ->label('Total Harga')
-                    ->numeric()
-                    ->prefix('Rp')
-                    ->disabled() // Field ini tidak bisa diisi manual
-                    ->dehydrated(false),
                 Forms\Components\Select::make('barang_id')
                     ->relationship('barang', 'nama')
                     ->required()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->live() // Membuat field ini reaktif
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        // Otomatis isi harga jual terakhir sebagai saran
+                        $stokKeluarTerakhir = StokKeluar::where('barang_id', $state)->latest()->first();
+                        $set('harga_jual', $stokKeluarTerakhir?->harga_jual ?? 0);
+                    })
+                    ->label('Nama Barang'),
+
                 Forms\Components\TextInput::make('jumlah')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->live(onBlur: true) // Membuat field ini reaktif
+                    ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                        // Hitung total harga saat jumlah diubah
+                        $hargaJual = $get('harga_jual') ?? 0;
+                        $set('total_harga', $state * $hargaJual);
+                    }),
+
+                Forms\Components\TextInput::make('harga_jual')
+                    ->label('Harga Jual per Satuan')
+                    ->required()
+                    ->numeric()
+                    ->prefix('Rp')
+                    ->live(onBlur: true) // Membuat field ini reaktif
+                    ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                        // Hitung total harga saat harga jual diubah
+                        $jumlah = $get('jumlah') ?? 0;
+                        $set('total_harga', $state * $jumlah);
+                    }),
+
+                // Field ini sekarang akan ter-update otomatis
+                Forms\Components\TextInput::make('total_harga')
+                    ->label('Total Harga')
+                    ->numeric()
+                    ->prefix('Rp')
+                    ->disabled()
+                    ->dehydrated(false), // Nilai hanya untuk display, dihitung ulang di Observer
+
                 Forms\Components\DatePicker::make('tanggal_keluar')
                     ->required()
                     ->default(now()),
+
+                // =========================================================
+                // INILAH PERBAIKAN UTAMA UNTUK ERROR SQL
+                // =========================================================
                 Forms\Components\Select::make('user_id')
                     ->relationship('user', 'name')
                     ->default(auth()->id())
                     ->disabled()
+                    ->dehydrated() // 👈 TAMBAHKAN INI
                     ->required(),
             ]);
     }

@@ -10,8 +10,24 @@ class Barang extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'nama',
+        'satuan',
+        'stok_maksimal',
+        // =========================================================
+        // PASTIKAN 'stok_sekarang' ADA DI DALAM ARRAY INI
+        // =========================================================
+        'stok_sekarang',
+    ];
 
+    /**
+     * Accessor untuk menghitung persentase sisa stok.
+     */
     protected function persentaseStok(): Attribute
     {
         return Attribute::make(
