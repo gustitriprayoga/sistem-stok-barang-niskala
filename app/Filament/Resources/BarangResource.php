@@ -45,22 +45,44 @@ class BarangResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('nama')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('satuan')
-                    ->required()
-                    ->maxLength(50),
-                Forms\Components\TextInput::make('stok_maksimal')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                // Stok sekarang tidak bisa diisi manual dari sini, hanya bisa dilihat
-                Forms\Components\TextInput::make('stok_sekarang')
-                    ->numeric()
-                    ->disabled()
-                    ->default(0)
-                    ->helperText('Stok akan terupdate otomatis dari transaksi stok masuk/keluar.'),
+                Forms\Components\Section::make('Informasi Barang')
+                    ->schema([
+                        Forms\Components\TextInput::make('nama')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('Contoh: Kertas A4'),
+
+                        // Satuan diubah menjadi Select
+                        Forms\Components\Select::make('satuan')
+                            ->options([
+                                'Pcs' => 'Pcs (Pieces)',
+                                'Kg' => 'Kg (Kilogram)',
+                                'Liter' => 'Liter',
+                                'Box' => 'Box',
+                                'Botol' => 'Botol',
+                                'Rim' => 'Rim',
+                                'Unit' => 'Unit',
+                            ])
+                            ->required()
+                            ->searchable() // Biar bisa cari satuan dengan mengetik
+                            ->placeholder('Pilih satuan'),
+
+                        Forms\Components\TextInput::make('stok_maksimal')
+                            ->label('Batas Stok Maksimal')
+                            ->required()
+                            ->numeric()
+                            ->default(0)
+                            ->helperText('Batas stok untuk memicu notifikasi peringatan.'),
+
+                        // Stok sekarang diaktifkan kembali untuk input manual
+                        Forms\Components\TextInput::make('stok_sekarang')
+                            ->label('Stok Saat Ini')
+                            ->numeric()
+                            ->required() // Diwajibkan agar tidak kosong
+                            ->default(0)
+                            ->placeholder('Masukkan jumlah stok awal')
+                            ->helperText('Masukkan Stok Awal Untuk Barang Ini.'),
+                    ])->columns(2), // Membuat tampilan menjadi 2 kolom agar lebih rapi
             ]);
     }
 

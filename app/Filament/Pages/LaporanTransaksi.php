@@ -75,43 +75,57 @@ class LaporanTransaksi extends Page implements HasForms
     {
         $data = $this->form->getState();
 
-        // Inisialisasi hasil laporan untuk mencegah error
         if (empty($data['tanggal_mulai']) || empty($data['tanggal_akhir'])) {
             $this->hasilLaporan = [
                 'total_barang_masuk' => 0,
                 'total_barang_keluar' => 0,
+                'total_pendapatan' => 0,
                 'detail_transaksi' => [],
             ];
             return;
         }
 
-        // 1. Ambil data stok keluar dan format
+        // 1. Ambil data stok keluar + Data Keuangan
         $stokKeluar = StokKeluar::whereBetween('tanggal_keluar', [$data['tanggal_mulai'], $data['tanggal_akhir']])
             ->with('barang', 'user')
             ->get()
             ->map(function ($item) {
-                $item->tipe = 'keluar';
-                $item->tanggal_transaksi = $item->tanggal_keluar;
-                return $item;
+                $row = $item->toArray();
+                $row['tipe'] = 'keluar';
+                $row['tanggal_transaksi'] = $item->tanggal_keluar;
+                // Pastikan field keuangan ada
+                $row['harga_jual'] = $item->harga_jual;
+                $row['total_harga'] = $item->total_harga;
+                $row['barang'] = $item->barang ? $item->barang->toArray() : null;
+                $row['user'] = $item->user ? $item->user->toArray() : null;
+                return $row;
             });
 
-        // 2. Ambil data stok masuk dan format
+        // 2. Ambil data stok masuk
         $stokMasuk = StokMasuk::whereBetween('tanggal_masuk', [$data['tanggal_mulai'], $data['tanggal_akhir']])
             ->with('barang', 'user')
             ->get()
             ->map(function ($item) {
-                $item->tipe = 'masuk';
-                $item->tanggal_transaksi = $item->tanggal_masuk;
-                return $item;
+                $row = $item->toArray();
+                $row['tipe'] = 'masuk';
+                $row['tanggal_transaksi'] = $item->tanggal_masuk;
+                // Stok masuk tidak memiliki pendapatan jual
+                $row['harga_jual'] = 0;
+                $row['total_harga'] = 0;
+                $row['barang'] = $item->barang ? $item->barang->toArray() : null;
+                $row['user'] = $item->user ? $item->user->toArray() : null;
+                return $row;
             });
 
-        // 3. Gabungkan kedua koleksi data dan urutkan berdasarkan tanggal terbaru
-        $transaksiGabungan = $stokMasuk->merge($stokKeluar)->sortByDesc('tanggal_transaksi');
+        $transaksiGabungan = $stokMasuk->merge($stokKeluar)
+            ->sortByDesc('tanggal_transaksi')
+            ->values()
+            ->all();
 
-        // 4. Siapkan data untuk ditampilkan di view
         $this->hasilLaporan = [
             'total_barang_masuk' => $stokMasuk->sum('jumlah'),
             'total_barang_keluar' => $stokKeluar->sum('jumlah'),
+            'total_pendapatan' => $stokKeluar->sum('total_harga'), // Total Keuangan
             'detail_transaksi' => $transaksiGabungan,
         ];
     }
