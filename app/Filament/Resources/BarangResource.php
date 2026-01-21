@@ -58,10 +58,11 @@ class BarangResource extends Resource
                                 'Pcs' => 'Pcs (Pieces)',
                                 'Kg' => 'Kg (Kilogram)',
                                 'Liter' => 'Liter',
+                                'Cup' => 'Satuan Cup',
+                                'Ml' => 'Ml (Mililiter)',
                                 'Box' => 'Box',
                                 'Botol' => 'Botol',
-                                'Rim' => 'Rim',
-                                'Unit' => 'Unit',
+                                'Buah' => 'Buah',
                             ])
                             ->required()
                             ->searchable() // Biar bisa cari satuan dengan mengetik
