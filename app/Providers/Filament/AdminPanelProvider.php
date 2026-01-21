@@ -24,6 +24,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->brandName('Nisakala Stok Management')
             ->id('admin')
             ->path('admin')
             ->login()
